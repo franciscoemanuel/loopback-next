@@ -9,10 +9,11 @@ import {
   PathsObject,
 } from '@loopback/openapi-v3-types';
 import {
+  BindingScope,
   Context,
   Constructor,
-  instantiateClass,
   invokeMethod,
+  Binding,
 } from '@loopback/context';
 import {ServerRequest} from 'http';
 import * as HttpErrors from 'http-errors';
@@ -66,7 +67,11 @@ export type ControllerClass = Constructor<any>;
 export class RoutingTable {
   private readonly _routes: RouteEntry[] = [];
 
-  registerController(controller: ControllerClass, spec: ControllerSpec) {
+  registerController(
+    controller: ControllerClass,
+    spec: ControllerSpec,
+    binding?: Binding,
+  ) {
     assert(
       typeof spec === 'object' && !!spec,
       'API specification must be a non-null object',
@@ -82,7 +87,14 @@ export class RoutingTable {
       for (const verb in spec.paths[p]) {
         const opSpec: OperationObject = spec.paths[p][verb];
         const fullPath = RoutingTable.joinPath(basePath, p);
-        const route = new ControllerRoute(verb, fullPath, opSpec, controller);
+        const route = new ControllerRoute(
+          verb,
+          fullPath,
+          opSpec,
+          controller,
+          undefined,
+          binding,
+        );
         this.registerRoute(route);
       }
     }
@@ -269,6 +281,7 @@ export class ControllerRoute extends BaseRoute {
     spec: OperationObject,
     protected readonly _controllerCtor: ControllerClass,
     methodName?: string,
+    protected _binding?: Binding,
   ) {
     super(
       verb,
@@ -306,6 +319,13 @@ export class ControllerRoute extends BaseRoute {
 
   updateBindings(requestContext: Context) {
     const ctor = this._controllerCtor;
+    if (!this._binding) {
+      // A binding does not exist. Create one in the request context.
+      this._binding = requestContext
+        .bind(`controllers.${ctor.name}`)
+        .toClass(ctor)
+        .inScope(BindingScope.SINGLETON);
+    }
     requestContext.bind('controller.current.ctor').to(ctor);
     requestContext.bind('controller.current.operation').to(this._methodName);
   }
@@ -329,14 +349,13 @@ export class ControllerRoute extends BaseRoute {
     );
   }
 
-  private async _createControllerInstance(
+  private _createControllerInstance(
     requestContext: Context,
   ): Promise<ControllerInstance> {
-    const valueOrPromise = instantiateClass(
-      this._controllerCtor,
-      requestContext,
-    );
-    return (await Promise.resolve(valueOrPromise)) as ControllerInstance;
+    const controllerBindingKey = this._binding
+      ? this._binding.key
+      : `controllers.${this._controllerCtor.name}`;
+    return requestContext.get(controllerBindingKey);
   }
 }
 

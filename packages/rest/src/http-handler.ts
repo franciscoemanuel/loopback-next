@@ -3,7 +3,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {Context} from '@loopback/context';
+import {Context, Binding} from '@loopback/context';
 import {PathsObject, SchemasObject} from '@loopback/openapi-v3-types';
 import {ServerRequest, ServerResponse} from 'http';
 import {ControllerSpec} from '@loopback/openapi-v3';
@@ -33,8 +33,12 @@ export class HttpHandler {
     this.handleRequest = (req, res) => this._handleRequest(req, res);
   }
 
-  registerController(name: ControllerClass, spec: ControllerSpec) {
-    this._routes.registerController(name, spec);
+  registerController(
+    name: ControllerClass,
+    spec: ControllerSpec,
+    binding?: Binding,
+  ) {
+    this._routes.registerController(name, spec, binding);
   }
 
   registerRoute(route: RouteEntry) {

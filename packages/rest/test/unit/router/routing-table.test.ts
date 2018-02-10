@@ -12,6 +12,7 @@ import {
 import {getControllerSpec, param, get} from '@loopback/openapi-v3';
 import {expect, ShotRequestOptions, ShotRequest} from '@loopback/testlab';
 import {anOpenApiSpec} from '@loopback/openapi-spec-builder';
+import {Binding} from '@loopback/context';
 
 describe('RoutingTable', () => {
   it('joins basePath and path', () => {
@@ -59,7 +60,7 @@ describe('RoutingTable', () => {
     class TestController {}
 
     const table = new RoutingTable();
-    table.registerController(TestController, spec);
+    table.registerController(TestController, spec, new Binding('foo'));
 
     const request = givenRequest({
       method: 'get',

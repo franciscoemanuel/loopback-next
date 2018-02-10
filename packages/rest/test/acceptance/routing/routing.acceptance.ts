@@ -26,7 +26,7 @@ import {
 
 import {expect, Client, createClientForHandler} from '@loopback/testlab';
 import {anOpenApiSpec, anOperationSpec} from '@loopback/openapi-spec-builder';
-import {inject, Context} from '@loopback/context';
+import {inject, Context, BindingScope} from '@loopback/context';
 import {ControllerClass} from '../../../src/router/routing-table';
 import {createUnexpectedHttpErrorLogger} from '../../helpers';
 
@@ -356,6 +356,32 @@ describe('Routing', () => {
       });
   });
 
+  it('binds the current controller', async () => {
+    const app = givenAnApplication();
+    const server = await givenAServer(app);
+    const spec = anOpenApiSpec()
+      .withOperationReturningString('get', '/name', 'checkController')
+      .build();
+
+    @api(spec)
+    class GetCurrentController {
+      async checkController(
+        @inject('controllers.GetCurrentController') inst: GetCurrentController,
+      ): Promise<object> {
+        return {
+          result: this === inst,
+        };
+      }
+    }
+    givenControllerInApp(app, GetCurrentController);
+
+    return whenIMakeRequestTo(server)
+      .get('/name')
+      .expect({
+        result: true,
+      });
+  });
+
   it('supports function-based routes', async () => {
     const app = givenAnApplication();
     const server = await givenAServer(app);
@@ -628,7 +654,7 @@ describe('Routing', () => {
   }
 
   function givenControllerInApp(app: Application, controller: ControllerClass) {
-    app.controller(controller);
+    app.controller(controller).inScope(BindingScope.CONTEXT);
   }
 
   function whenIMakeRequestTo(server: RestServer): Client {
