@@ -344,7 +344,7 @@ describe('API specification', () => {
 });
 ```
 
-See [Validate your OpenAPI specification](Testing-your-application.html#validate-your-openapi-specification) from [Testing your application](Testing-your-application.md) for more details.
+See [Validate your OpenAPI specification](Testing-your-application.md#validate-your-openapi-specification) from [Testing your application](Testing-your-application.md) for more details.
 
 {% include next.html content= "
 [Testing the API](./Testing-the-API.md)

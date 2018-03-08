@@ -129,7 +129,7 @@ A frequent use case for components is to modify the way requests are handled. Fo
 
 The idiomatic solution has two parts:
 
- 1. The component should define and bind a new [Sequence action](Sequence.html#actions), for example `authentication.actions.authenticate`:
+ 1. The component should define and bind a new [Sequence action](Sequence.md#actions), for example `authentication.actions.authenticate`:
 
     ```js
     class AuthenticationComponent {
@@ -319,7 +319,7 @@ app.find('repositories.*');
 
 More often than not, the component may want to offer different value providers depending on the configuration. For example, a component providing an email API may offer different transports (stub, SMTP, and so on).
 
-Components should use constructor-level [Dependency Injection](Context.html#dependency-injection) to receive the configuration from the application.
+Components should use constructor-level [Dependency Injection](Context.md#dependency-injection) to receive the configuration from the application.
 
 ```js
 class EmailComponent {
